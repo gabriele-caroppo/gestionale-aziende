@@ -220,8 +220,11 @@
   .task-item:hover { border-color: #333; background: #1a1a1a; }
   .task-item.status-todo    { border-left: 3px solid var(--todo); }
   .task-item.status-inprogress { border-left: 3px solid var(--inprogress); }
-  .task-item.status-done    { border-left: 3px solid var(--done); }
+  .task-item.status-done       { border-left: 3px solid var(--done); }
+  .task-item.status-incomplete   { border-left: 3px solid #f49632; }
+  .task-item.status-missingfiles { border-left: 3px solid #b45af4; }
   .task-item.status-done .task-name { text-decoration: line-through; color: var(--muted); }
+  .subtask-item.status-done .subtask-name { text-decoration: line-through; color: var(--muted); }
 
   /* EXPAND TOGGLE */
   .expand-btn {
@@ -256,9 +259,11 @@
 
   .task-name {
     flex: 1;
+    min-width: 0;
     font-size: 0.88rem;
     line-height: 1.4;
     word-break: break-word;
+    overflow-wrap: anywhere;
   }
   .task-name-edit {
     flex: 1;
@@ -307,6 +312,8 @@
   .badge-todo { background: rgba(200,244,90,0.15); color: var(--todo); }
   .badge-inprogress { background: rgba(244,200,90,0.15); color: var(--inprogress); }
   .badge-done { background: rgba(90,244,200,0.15); color: var(--done); }
+  .badge-incomplete { background: rgba(244,150,50,0.15); color: #f49632; }
+  .badge-missingfiles { background: rgba(180,90,244,0.15); color: #b45af4; }
 
   .icon-btn {
     background: none;
@@ -350,17 +357,20 @@
     border-radius: 6px;
     padding: 0.6rem 0.9rem;
     display: flex;
-    align-items: center;
-    gap: 0.7rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     font-size: 0.82rem;
     animation: slideIn 0.15s ease;
   }
   .subtask-item.status-todo    { border-left: 2px solid var(--todo); }
   .subtask-item.status-inprogress { border-left: 2px solid var(--inprogress); }
-  .subtask-item.status-done    { border-left: 2px solid var(--done); }
+  .subtask-item.status-done       { border-left: 2px solid var(--done); }
+  .subtask-item.status-incomplete   { border-left: 2px solid #f49632; }
+  .subtask-item.status-missingfiles { border-left: 2px solid #b45af4; }
   .subtask-item.status-done .subtask-name { text-decoration: line-through; color: var(--muted); }
 
-  .subtask-name { flex: 1; word-break: break-word; }
+  .subtask-name { flex: 1; min-width: 0; word-break: break-word; overflow-wrap: anywhere; }
   .subtask-name-edit {
     flex: 1;
     background: var(--surface2);
@@ -475,10 +485,16 @@
 
   /* RESPONSIVE */
   @media (max-width: 600px) {
-    header, .tabs, main { padding-left: 1.2rem; padding-right: 1.2rem; }
+    header, .tabs, main { padding-left: 1rem; padding-right: 1rem; }
     .task-item { flex-wrap: wrap; }
     .task-meta { width: 100%; justify-content: flex-end; }
-    .subtasks-panel.open { padding-left: 1rem; }
+    .subtasks-panel.open { padding-left: 0.8rem; padding-right: 0.5rem; }
+    .subtask-item { flex-wrap: wrap; }
+    .subtask-item .task-meta { width: 100%; justify-content: flex-end; margin-top: 0.2rem; }
+    .subtask-name { width: 100%; }
+    .status-select { font-size: 0.65rem; }
+    .add-subtask-row { flex-wrap: wrap; }
+    .add-subtask-row input { min-width: 0; width: 100%; }
   }
 
 </style>
@@ -669,8 +685,8 @@
     const isBlocked = subCount > 0 && incompleteSubs > 0 && task.status !== 'done';
     const isOpen = openAccordions.has(tid);
 
-    const statusLabel = { todo:'Da fare', inprogress:'In corso', done:'Completata' }[task.status] || 'Da fare';
-    const badgeCls    = { todo:'badge-todo', inprogress:'badge-inprogress', done:'badge-done' }[task.status] || 'badge-todo';
+    const statusLabel = { todo:'Da fare', inprogress:'In corso', done:'Completata', incomplete:'Incarico incompleto', missingfiles:'File mancanti' }[task.status] || 'Da fare';
+    const badgeCls    = { todo:'badge-todo', inprogress:'badge-inprogress', done:'badge-done', incomplete:'badge-incomplete', missingfiles:'badge-missingfiles' }[task.status] || 'badge-todo';
     const date = task.createdAt ? new Date(task.createdAt).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}) : '';
 
     const isEditingTask = editingId?.type === 'task' && editingId?.tid === tid;
@@ -697,9 +713,11 @@
           ${isBlocked ? `<span class="blocked-badge">⚠ bloccata</span>` : ''}
           ${!isEditingTask ? `<span class="status-badge ${badgeCls}">${statusLabel}</span>` : ''}
           <select class="status-select" onchange="window._updateStatus('${cid}','${tid}',this.value)">
-            <option value="todo"       ${task.status==='todo'       ?'selected':''}>Da fare</option>
-            <option value="inprogress" ${task.status==='inprogress' ?'selected':''}>In corso</option>
-            <option value="done"       ${task.status==='done'       ?'selected':''}>Completata</option>
+            <option value="todo"           ${task.status==='todo'           ?'selected':''}>Da fare</option>
+            <option value="inprogress"     ${task.status==='inprogress'     ?'selected':''}>In corso</option>
+            <option value="done"           ${task.status==='done'           ?'selected':''}>Completata</option>
+            <option value="incomplete"     ${task.status==='incomplete'     ?'selected':''}>Incarico incompleto</option>
+            <option value="missingfiles"   ${task.status==='missingfiles'   ?'selected':''}>File mancanti</option>
           </select>
           ${!isEditingTask
             ? `<button class="icon-btn" title="Modifica" onclick="window._startTaskEdit('${cid}','${tid}')">✏️</button>`
@@ -718,14 +736,14 @@
       <div class="subtasks-panel" id="sub-panel-${tid}">
         <div class="subtasks-list" id="sublist-${tid}">
           ${subCount === 0
-            ? `<div style="font-size:0.72rem;color:var(--muted);padding:0.3rem 0">Nessuna sotto-task ancora.</div>`
+            ? `<div style="font-size:0.72rem;color:var(--muted);padding:0.3rem 0">Nessuna sub-task ancora.</div>`
             : subtaskRows
           }
         </div>
         <div class="add-subtask-row">
-          <input type="text" id="sub-input-${tid}" placeholder="Nuova sotto-task…"
+          <input type="text" id="sub-input-${tid}" placeholder="Nuova sub-task…"
                  onkeydown="if(event.key==='Enter') window._addSubtask('${cid}','${tid}')"/>
-          <button class="btn-sub" onclick="window._addSubtask('${cid}','${tid}')">+ Sotto-task</button>
+          <button class="btn-sub" onclick="window._addSubtask('${cid}','${tid}')">+ Sub-task</button>
         </div>
       </div>`;
 
@@ -734,8 +752,8 @@
 
   function renderSubtaskRow(cid, tid, sid, sub) {
     const isEditing = editingId?.type === 'subtask' && editingId?.sid === sid;
-    const badgeCls  = { todo:'badge-todo', inprogress:'badge-inprogress', done:'badge-done' }[sub.status] || 'badge-todo';
-    const label     = { todo:'Da fare', inprogress:'In corso', done:'Completata' }[sub.status] || 'Da fare';
+    const badgeCls  = { todo:'badge-todo', inprogress:'badge-inprogress', done:'badge-done', incomplete:'badge-incomplete', missingfiles:'badge-missingfiles' }[sub.status] || 'badge-todo';
+    const label     = { todo:'Da fare', inprogress:'In corso', done:'Completata', incomplete:'Incarico incompleto', missingfiles:'File mancanti' }[sub.status] || 'Da fare';
 
     return `
       <div class="subtask-item status-${sub.status||'todo'}" id="subtask-${sid}">
@@ -749,9 +767,11 @@
           ${!isEditing ? `<span class="status-badge ${badgeCls}" style="font-size:0.58rem">${label}</span>` : ''}
           <select class="status-select" style="font-size:0.65rem;padding:0.2rem 0.4rem"
                   onchange="window._updateSubStatus('${cid}','${tid}','${sid}',this.value)">
-            <option value="todo"       ${sub.status==='todo'       ?'selected':''}>Da fare</option>
-            <option value="inprogress" ${sub.status==='inprogress' ?'selected':''}>In corso</option>
-            <option value="done"       ${sub.status==='done'       ?'selected':''}>Completata</option>
+            <option value="todo"           ${sub.status==='todo'           ?'selected':''}>Da fare</option>
+            <option value="inprogress"     ${sub.status==='inprogress'     ?'selected':''}>In corso</option>
+            <option value="done"           ${sub.status==='done'           ?'selected':''}>Completata</option>
+            <option value="incomplete"     ${sub.status==='incomplete'     ?'selected':''}>Incarico incompleto</option>
+            <option value="missingfiles"   ${sub.status==='missingfiles'   ?'selected':''}>File mancanti</option>
           </select>
           ${!isEditing
             ? `<button class="icon-btn" style="font-size:0.75rem" title="Modifica" onclick="window._startSubEdit('${cid}','${tid}','${sid}')">✏️</button>`
@@ -849,7 +869,7 @@
       await window._fbPush(`tasks/${cid}/${tid}/subtasks`, { name, status:'todo', createdAt: Date.now() });
       inp.value = '';
       openAccordions.add(tid); // keep open
-      toast('Sotto-task aggiunta ✓');
+      toast('Sub-task aggiunta ✓');
     } catch(e) { toast('Errore: ' + e.message); }
   };
 
@@ -863,10 +883,10 @@
 
   window._deleteSubtask = async function(cid, tid, sid) {
     if (!db) return;
-    if (!confirm('Eliminare questa sotto-task?')) return;
+    if (!confirm('Eliminare questa sub-task?')) return;
     try {
       await window._fbRemove(`tasks/${cid}/${tid}/subtasks/${sid}`);
-      toast('Sotto-task eliminata');
+      toast('Sub-task eliminata');
     } catch(e) { toast('Errore: ' + e.message); }
   };
 
@@ -885,7 +905,7 @@
     try {
       await window._fbSet(`tasks/${cid}/${tid}/subtasks/${sid}/name`, name);
       editingId = null;
-      toast('Sotto-task modificata ✓');
+      toast('Sub-task modificata ✓');
     } catch(e) { toast('Errore: ' + e.message); }
   };
 
@@ -912,6 +932,57 @@
     toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
   }
 
+  // ── Seed dati iniziali ────────────────────────────────────
+  const SEED = {
+    focacciamo: [
+      { name: 'REBRANDING FOCACCIAMO', status: 'inprogress', subtasks: [
+        { name: 'Divise dipendenti', status: 'todo' },
+        { name: 'Cartone Focaccia', status: 'todo' },
+        { name: 'Cartone Pidone', status: 'todo' },
+        { name: 'Aggiornare foto ed eventuali banner sui social', status: 'todo' },
+      ]},
+      { name: 'Creare calendario contenuti e script per fish', status: 'done' },
+      { name: 'Fare formazione piattaforma pienissimo', status: 'todo', subtasks: [
+        { name: 'Menu ordine online', status: 'todo' },
+        { name: 'App pienissimo', status: 'todo' },
+        { name: 'Mansionissmo', status: 'todo' },
+      ]},
+    ],
+    futuri: [
+      { name: 'Pitch deck', status: 'done', subtasks: [
+        { name: 'Pitch deck v2', status: 'done' },
+        { name: 'Pitch deck v3', status: 'done' },
+        { name: 'Pitch deck definitivo', status: 'done' },
+      ]},
+      { name: 'Sistemare pagine FB e IG con tutto', status: 'todo' },
+      { name: 'Piano editoriale / strategia contenuti', status: 'todo', subtasks: [
+        { name: 'Prove contenuto', status: 'todo' },
+      ]},
+      { name: 'Pitch deck per Serie A', status: 'incomplete' },
+    ],
+    lamancha: [
+      { name: 'Creare account IG', status: 'todo' },
+      { name: 'Sistemare IG e FB con tutto', status: 'todo' },
+    ],
+  };
+
+  async function seedIfEmpty(db) {
+    const { ref, get, push, set } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js');
+    for (const [cid, tasks] of Object.entries(SEED)) {
+      const snap = await get(ref(db, `tasks/${cid}`));
+      if (snap.exists()) continue; // non sovrascrivere se già ci sono dati
+      for (const task of tasks) {
+        const { subtasks, ...taskData } = task;
+        const newRef = await push(ref(db, `tasks/${cid}`), { ...taskData, createdAt: Date.now() });
+        if (subtasks) {
+          for (const sub of subtasks) {
+            await push(ref(db, `tasks/${cid}/${newRef.key}/subtasks`), { ...sub, createdAt: Date.now() });
+          }
+        }
+      }
+    }
+  }
+
   // ── Boot ────────────────────────────────────────────────────
   const cfg = {
     apiKey: "AIzaSyAfy8G_pHz8DftywbYi4YX1k71EyrmOgxQ",
@@ -919,7 +990,17 @@
     databaseURL: "https://gestionale-gabriele-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "gestionale-gabriele",
   };
-  initFirebase(cfg);
+
+  // Avvia Firebase e dopo il seed
+  const _origInit = initFirebase;
+  async function initFirebaseWithSeed(cfg) {
+    await _origInit(cfg);
+    // seedIfEmpty viene chiamato dopo che db è pronto
+    setTimeout(async () => {
+      if (db) await seedIfEmpty(db);
+    }, 1500);
+  }
+  initFirebaseWithSeed(cfg);
 </script>
 </body>
 </html>
