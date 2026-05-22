@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gestionale Società</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1f1f1f;
+    --surface3: #242424;
+    --border: #2a2a2a;
+    --accent: #c8f45a;
+    --accent2: #5af4c8;
+    --accent3: #f45a8f;
+    --text: #f0f0f0;
+    --muted: #666;
+    --todo: #c8f45a;
+    --inprogress: #f4c85a;
+    --done: #5af4c8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .header-left h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .header-left h1 span { color: var(--accent); }
+
+  .header-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 0.4rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+  #conn-status {
+    font-size: 0.68rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  #conn-status.connected { color: var(--accent); border-color: var(--accent); }
+  #conn-status.error { color: var(--accent3); border-color: var(--accent3); }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    padding: 1.5rem 2.5rem 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.8rem 1.8rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-count {
+    font-size: 0.65rem;
+    background: var(--surface2);
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin-left: 6px;
+    color: var(--muted);
+  }
+  .tab-btn.active .tab-count { background: var(--accent); color: var(--bg); }
+
+  /* MAIN */
+  main { padding: 2rem 2.5rem; max-width: 1200px; }
+
+  .company-panel { display: none; }
+  .company-panel.active { display: block; animation: fadeIn 0.25s ease; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+  /* STATS */
+  .stats-bar { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.7rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .stat-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat-num { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; }
+
+  /* ADD TASK */
+  .add-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .add-section input[type="text"] {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    padding: 0.6rem 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .add-section input[type="text"]:focus { border-color: var(--accent); }
+  .add-section input[type="text"]::placeholder { color: var(--muted); }
+
+  .btn {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 4px;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-accent { background: var(--accent); color: var(--bg); }
+  .btn-accent:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text); }
+
+  /* TASK WRAPPER (contiene task + subtasks) */
+  .task-wrapper { display: flex; flex-direction: column; gap: 0; }
+
+  /* TASK ITEM */
+  .task-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    transition: border-color 0.2s, background 0.2s;
+    animation: slideIn 0.2s ease;
+    position: relative;
+  }
+
+  .task-wrapper.has-subtasks-open > .task-item {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-color: transparent;
+  }
+
+  @keyframes slideIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+
+  .task-item:hover { border-color: #333; background: #1a1a1a; }
+  .task-item.status-todo    { border-left: 3px solid var(--todo); }
+  .task-item.status-inprogress { border-left: 3px solid var(--inprogress); }
+  .task-item.status-done    { border-left: 3px solid var(--done); }
+  .task-item.status-done .task-name { text-decoration: line-through; color: var(--muted); }
+
+  /* EXPAND TOGGLE */
+  .expand-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 0.7rem;
+    padding: 0.25rem;
+    border-radius: 3px;
+    transition: color 0.15s, transform 0.2s;
+    flex-shrink: 0;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .expand-btn:hover { color: var(--accent); }
+  .expand-btn .arrow { display: inline-block; transition: transform 0.2s; font-style: normal; }
+  .expand-btn.open .arrow { transform: rotate(90deg); }
+  .expand-btn .sub-count {
+    font-size: 0.6rem;
+    background: var(--surface2);
+    border-radius: 3px;
+    padding: 1px 4px;
+  }
+  .expand-btn.has-incomplete .sub-count {
+    background: rgba(244,200,90,0.2);
+    color: var(--inprogress);
+  }
+
+  .task-name {
+    flex: 1;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+  .task-name-edit {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.88rem;
+    padding: 0.3rem 0.6rem;
+    outline: none;
+  }
+
+  .task-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  .status-select {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    padding: 0.3rem 0.5rem;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .status-select:focus { border-color: var(--accent); }
+  .status-select option { background: var(--surface2); }
+
+  .status-badge {
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.22rem 0.5rem;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .badge-todo { background: rgba(200,244,90,0.15); color: var(--todo); }
+  .badge-inprogress { background: rgba(244,200,90,0.15); color: var(--inprogress); }
+  .badge-done { background: rgba(90,244,200,0.15); color: var(--done); }
+
+  .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 0.85rem;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover { color: var(--text); background: var(--surface2); }
+  .icon-btn.delete:hover { color: var(--accent3); }
+
+  .task-date { font-size: 0.62rem; color: var(--muted); white-space: nowrap; }
+
+  /* SUBTASKS PANEL */
+  .subtasks-panel {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+  }
+  .subtasks-panel.open {
+    max-height: 1000px;
+    padding: 0.8rem 1rem 0.8rem 2.5rem;
+  }
+
+  /* SUBTASK ITEMS */
+  .subtasks-list { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.6rem; }
+
+  .subtask-item {
+    background: var(--surface3);
+    border: 1px solid #2e2e2e;
+    border-radius: 6px;
+    padding: 0.6rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-size: 0.82rem;
+    animation: slideIn 0.15s ease;
+  }
+  .subtask-item.status-todo    { border-left: 2px solid var(--todo); }
+  .subtask-item.status-inprogress { border-left: 2px solid var(--inprogress); }
+  .subtask-item.status-done    { border-left: 2px solid var(--done); }
+  .subtask-item.status-done .subtask-name { text-decoration: line-through; color: var(--muted); }
+
+  .subtask-name { flex: 1; word-break: break-word; }
+  .subtask-name-edit {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    padding: 0.25rem 0.5rem;
+    outline: none;
+  }
+
+  /* BLOCKED INDICATOR on parent task */
+  .blocked-badge {
+    font-size: 0.58rem;
+    background: rgba(244,90,143,0.15);
+    color: var(--accent3);
+    border: 1px solid rgba(244,90,143,0.3);
+    border-radius: 3px;
+    padding: 0.2rem 0.45rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ADD SUBTASK ROW */
+  .add-subtask-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.2rem;
+  }
+  .add-subtask-row input {
+    flex: 1;
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    padding: 0.45rem 0.7rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .add-subtask-row input:focus { border-color: var(--accent2); }
+  .add-subtask-row input::placeholder { color: var(--muted); }
+  .btn-sub {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 4px;
+    padding: 0.45rem 0.9rem;
+    cursor: pointer;
+    background: var(--accent2);
+    color: var(--bg);
+    transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  .btn-sub:hover { opacity: 0.8; }
+
+  /* TASKS LIST */
+  .tasks-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+  /* EMPTY */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+  }
+  .empty-state .empty-icon { font-size: 2rem; margin-bottom: 1rem; opacity: 0.4; }
+
+  /* LOADING */
+  #loading {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 100; gap: 1rem;
+  }
+  .loader {
+    width: 40px; height: 40px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  #loading p { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 2rem; right: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 0.78rem;
+    padding: 0.8rem 1.4rem;
+    border-radius: 6px;
+    opacity: 0; transform: translateY(10px);
+    transition: all 0.25s;
+    z-index: 200; pointer-events: none;
+    letter-spacing: 0.04em;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    header, .tabs, main { padding-left: 1.2rem; padding-right: 1.2rem; }
+    .task-item { flex-wrap: wrap; }
+    .task-meta { width: 100%; justify-content: flex-end; }
+    .subtasks-panel.open { padding-left: 1rem; }
+  }
+
+  /* SETUP */
+  #setup-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 300; backdrop-filter: blur(4px);
+  }
+  .setup-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 2.5rem;
+    max-width: 460px; width: 90%;
+  }
+  .setup-box h2 { font-family:'Syne',sans-serif; font-weight:800; font-size:1.4rem; margin-bottom:0.5rem; color:var(--accent); }
+  .setup-box p { font-size:0.78rem; color:var(--muted); margin-bottom:1.5rem; line-height:1.6; }
+  .setup-box label { display:block; font-size:0.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.4rem; }
+  .setup-box input {
+    width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:4px;
+    color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:0.82rem;
+    padding:0.7rem 1rem; outline:none; margin-bottom:1rem; transition:border-color 0.2s;
+  }
+  .setup-box input:focus { border-color:var(--accent); }
+  .setup-box input::placeholder { color:var(--muted); }
+  .setup-note { font-size:0.68rem; color:var(--muted); border:1px solid var(--border); border-radius:4px; padding:0.7rem 0.9rem; margin-bottom:1.2rem; line-height:1.7; }
+  .setup-note a { color:var(--accent); }
+  .setup-box .btn { width:100%; font-size:0.85rem; padding:0.8rem; }
+  #setup-error { font-size:0.72rem; color:var(--accent3); margin-bottom:0.8rem; display:none; }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="loader"></div>
+  <p>Connessione in corso…</p>
+</div>
+
+<div id="setup-overlay" style="display:none">
+  <div class="setup-box">
+    <h2>⚙ Configura Firebase</h2>
+    <p>Inserisci le credenziali del tuo progetto Firebase gratuito.<br>Il database viene condiviso tra te e il tuo capo tramite lo stesso link.</p>
+    <div class="setup-note">
+      1. Vai su <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a><br>
+      2. Crea un progetto → Aggiungi app web<br>
+      3. Attiva <strong>Realtime Database</strong> in modalità test<br>
+      4. Copia i valori dalla config e incollali qui sotto
+    </div>
+    <label>API Key</label>
+    <input id="cfg-apiKey" type="text" placeholder="AIzaSy..." />
+    <label>Auth Domain</label>
+    <input id="cfg-authDomain" type="text" placeholder="mio-progetto.firebaseapp.com" />
+    <label>Database URL</label>
+    <input id="cfg-dbUrl" type="text" placeholder="https://mio-progetto-default-rtdb.firebaseio.com" />
+    <label>Project ID</label>
+    <input id="cfg-projectId" type="text" placeholder="mio-progetto" />
+    <div id="setup-error"></div>
+    <button class="btn btn-accent" onclick="saveConfig()">Salva e connetti</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="header-left">
+      <h1>Gestionale <span>Società</span></h1>
+      <div class="header-sub"><span class="status-dot"></span>Dashboard operativa · 3 società</div>
+    </div>
+    <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap">
+      <div id="conn-status">● Connessione…</div>
+      <button class="btn btn-ghost" onclick="showSetup()" style="font-size:0.7rem;padding:0.4rem 0.9rem">⚙ Config</button>
+    </div>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+  <main id="main-content"></main>
+</div>
+
+<script type="module">
+  const COMPANIES = [
+    { id: 'focacciamo', name: 'Focacciamo' },
+    { id: 'lamancha',   name: 'La Mancha' },
+    { id: 'futuri',     name: 'Futuri Campioni' },
+  ];
+
+  let db = null;
+  let activeTab = COMPANIES[0].id;
+  let allTasks = {};
+  let editingId = null;   // { type:'task'|'subtask', cid, tid, sid? }
+  let openAccordions = new Set(); // set of tid currently expanded
+
+  // ── Config ─────────────────────────────────────────────────
+  function getConfig() {
+    try { return JSON.parse(localStorage.getItem('fb_cfg') || 'null'); } catch { return null; }
+  }
+
+  function saveConfig() {
+    const cfg = {
+      apiKey:      document.getElementById('cfg-apiKey').value.trim(),
+      authDomain:  document.getElementById('cfg-authDomain').value.trim(),
+      databaseURL: document.getElementById('cfg-dbUrl').value.trim(),
+      projectId:   document.getElementById('cfg-projectId').value.trim(),
+    };
+    const err = document.getElementById('setup-error');
+    if (!cfg.apiKey || !cfg.databaseURL || !cfg.projectId) {
+      err.style.display = 'block';
+      err.textContent = 'Compila almeno API Key, Database URL e Project ID.';
+      return;
+    }
+    localStorage.setItem('fb_cfg', JSON.stringify(cfg));
+    document.getElementById('setup-overlay').style.display = 'none';
+    initFirebase(cfg);
+  }
+  window.saveConfig = saveConfig;
+
+  function showSetup() {
+    const cfg = getConfig() || {};
+    document.getElementById('cfg-apiKey').value     = cfg.apiKey     || '';
+    document.getElementById('cfg-authDomain').value = cfg.authDomain || '';
+    document.getElementById('cfg-dbUrl').value      = cfg.databaseURL|| '';
+    document.getElementById('cfg-projectId').value  = cfg.projectId  || '';
+    document.getElementById('setup-error').style.display = 'none';
+    document.getElementById('setup-overlay').style.display = 'flex';
+  }
+  window.showSetup = showSetup;
+
+  // ── Firebase ────────────────────────────────────────────────
+  async function initFirebase(cfg) {
+    try {
+      const { initializeApp }  = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+      const { getDatabase, ref, onValue, set, remove, push }
+        = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js');
+
+      const app = initializeApp(cfg);
+      db = getDatabase(app);
+      setConnStatus('connected', '● Live');
+
+      COMPANIES.forEach(c => {
+        onValue(ref(db, `tasks/${c.id}`), snap => {
+          allTasks[c.id] = snap.val() || {};
+          if (activeTab === c.id) renderTasks(c.id);
+          updateTabCounts();
+        }, err => {
+          setConnStatus('error', '● Errore DB');
+          console.error(err);
+        });
+      });
+
+      window._fbSet    = (path, val) => set(ref(db, path), val);
+      window._fbRemove = (path)      => remove(ref(db, path));
+      window._fbPush   = (path, val) => push(ref(db, path), val);
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      buildUI();
+    } catch(e) {
+      console.error(e);
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      buildUI();
+      showSetup();
+      const err = document.getElementById('setup-error');
+      err.style.display = 'block';
+      err.textContent = 'Errore: ' + e.message;
+    }
+  }
+
+  function setConnStatus(cls, txt) {
+    const el = document.getElementById('conn-status');
+    el.className = cls; el.textContent = txt;
+  }
+
+  // ── UI Build ────────────────────────────────────────────────
+  function buildUI() {
+    const tabs = document.getElementById('tabs');
+    tabs.innerHTML = COMPANIES.map(c =>
+      `<button class="tab-btn" id="tab-${c.id}" onclick="window._switchTab('${c.id}')">
+         ${c.name} <span class="tab-count" id="cnt-${c.id}">0</span>
+       </button>`
+    ).join('');
+
+    const main = document.getElementById('main-content');
+    main.innerHTML = COMPANIES.map(c =>
+      `<div class="company-panel" id="panel-${c.id}">
+         <div class="stats-bar" id="stats-${c.id}"></div>
+         <div class="add-section">
+           <input type="text" id="input-${c.id}" placeholder="Nuova tasca principale…"
+                  onkeydown="if(event.key==='Enter') window._addTask('${c.id}')"/>
+           <button class="btn btn-accent" onclick="window._addTask('${c.id}')">+ Aggiungi</button>
+         </div>
+         <div class="tasks-list" id="list-${c.id}"></div>
+       </div>`
+    ).join('');
+
+    switchTab(COMPANIES[0].id);
+  }
+
+  function switchTab(cid) {
+    activeTab = cid;
+    COMPANIES.forEach(c => {
+      document.getElementById(`tab-${c.id}`)?.classList.toggle('active', c.id === cid);
+      document.getElementById(`panel-${c.id}`)?.classList.toggle('active', c.id === cid);
+    });
+    renderTasks(cid);
+  }
+  window._switchTab = switchTab;
+
+  function updateTabCounts() {
+    COMPANIES.forEach(c => {
+      const el = document.getElementById(`cnt-${c.id}`);
+      if (el) el.textContent = Object.keys(allTasks[c.id] || {}).length;
+    });
+  }
+
+  // ── Render ──────────────────────────────────────────────────
+  function renderTasks(cid) {
+    const tasks = allTasks[cid] || {};
+    const arr = Object.entries(tasks).sort((a,b) => (a[1].createdAt||0) - (b[1].createdAt||0));
+
+    // Stats (count only parent tasks)
+    const todo = arr.filter(([,t]) => t.status==='todo').length;
+    const prog = arr.filter(([,t]) => t.status==='inprogress').length;
+    const done = arr.filter(([,t]) => t.status==='done').length;
+
+    const statsEl = document.getElementById(`stats-${cid}`);
+    if (statsEl) statsEl.innerHTML = `
+      <div class="stat"><span class="stat-dot" style="background:var(--todo)"></span>
+        <div><div class="stat-label">Da fare</div><div class="stat-num">${todo}</div></div></div>
+      <div class="stat"><span class="stat-dot" style="background:var(--inprogress)"></span>
+        <div><div class="stat-label">In corso</div><div class="stat-num">${prog}</div></div></div>
+      <div class="stat"><span class="stat-dot" style="background:var(--done)"></span>
+        <div><div class="stat-label">Completate</div><div class="stat-num">${done}</div></div></div>
+      <div class="stat"><span class="stat-dot" style="background:var(--muted)"></span>
+        <div><div class="stat-label">Totale</div><div class="stat-num">${arr.length}</div></div></div>
+    `;
+
+    const listEl = document.getElementById(`list-${cid}`);
+    if (!listEl) return;
+
+    if (arr.length === 0) {
+      listEl.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div>Nessuna tasca ancora.<br>Aggiungine una qui sopra.</div>`;
+      return;
+    }
+
+    listEl.innerHTML = arr.map(([tid, task]) => renderTaskWrapper(cid, tid, task)).join('');
+
+    // Re-apply accordion open state
+    openAccordions.forEach(tid => {
+      const panel = document.getElementById(`sub-panel-${tid}`);
+      const btn   = document.getElementById(`expand-btn-${tid}`);
+      const wrap  = document.getElementById(`wrap-${tid}`);
+      if (panel) { panel.classList.add('open'); }
+      if (btn)   { btn.classList.add('open'); }
+      if (wrap)  { wrap.classList.add('has-subtasks-open'); }
+    });
+
+    // Focus edit input
+    if (editingId) {
+      const inputId = editingId.type === 'subtask'
+        ? `sedit-${editingId.sid}`
+        : `tedit-${editingId.tid}`;
+      setTimeout(() => {
+        const inp = document.getElementById(inputId);
+        if (inp) { inp.focus(); inp.select(); }
+      }, 30);
+    }
+  }
+
+  function renderTaskWrapper(cid, tid, task) {
+    const subtasks = task.subtasks ? Object.entries(task.subtasks).sort((a,b)=>(a[1].createdAt||0)-(b[1].createdAt||0)) : [];
+    const subCount = subtasks.length;
+    const incompleteSubs = subtasks.filter(([,s]) => s.status !== 'done').length;
+    const isBlocked = subCount > 0 && incompleteSubs > 0 && task.status !== 'done';
+    const isOpen = openAccordions.has(tid);
+
+    const statusLabel = { todo:'Da fare', inprogress:'In corso', done:'Completata' }[task.status] || 'Da fare';
+    const badgeCls    = { todo:'badge-todo', inprogress:'badge-inprogress', done:'badge-done' }[task.status] || 'badge-todo';
+    const date = task.createdAt ? new Date(task.createdAt).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}) : '';
+
+    const isEditingTask = editingId?.type === 'task' && editingId?.tid === tid;
+
+    // Expand button
+    const expandBtn = `
+      <button class="expand-btn${subCount>0&&incompleteSubs>0?' has-incomplete':''}" 
+              id="expand-btn-${tid}" 
+              onclick="window._toggleAccordion('${tid}')"
+              title="${subCount===0?'Aggiungi sotto-task':'Mostra/nascondi sotto-task'}">
+        <span class="arrow">▶</span>
+        <span class="sub-count">${subCount}</span>
+      </button>`;
+
+    const taskRow = `
+      <div class="task-item status-${task.status||'todo'}" id="task-${tid}">
+        ${expandBtn}
+        ${isEditingTask
+          ? `<input class="task-name-edit" id="tedit-${tid}" value="${escHtml(task.name)}"
+                    onkeydown="if(event.key==='Enter') window._saveTaskEdit('${cid}','${tid}'); if(event.key==='Escape') window._cancelEdit()"/>`
+          : `<span class="task-name">${escHtml(task.name)}</span>`
+        }
+        <div class="task-meta">
+          ${isBlocked ? `<span class="blocked-badge">⚠ bloccata</span>` : ''}
+          ${!isEditingTask ? `<span class="status-badge ${badgeCls}">${statusLabel}</span>` : ''}
+          <select class="status-select" onchange="window._updateStatus('${cid}','${tid}',this.value)">
+            <option value="todo"       ${task.status==='todo'       ?'selected':''}>Da fare</option>
+            <option value="inprogress" ${task.status==='inprogress' ?'selected':''}>In corso</option>
+            <option value="done"       ${task.status==='done'       ?'selected':''}>Completata</option>
+          </select>
+          ${!isEditingTask
+            ? `<button class="icon-btn" title="Modifica" onclick="window._startTaskEdit('${cid}','${tid}')">✏️</button>`
+            : `<button class="icon-btn" title="Salva" onclick="window._saveTaskEdit('${cid}','${tid}')">💾</button>
+               <button class="icon-btn" title="Annulla" onclick="window._cancelEdit()">✕</button>`
+          }
+          <button class="icon-btn delete" title="Elimina tasca e sotto-task" onclick="window._deleteTask('${cid}','${tid}')">🗑</button>
+          ${date ? `<span class="task-date">${date}</span>` : ''}
+        </div>
+      </div>`;
+
+    // Subtasks panel
+    const subtaskRows = subtasks.map(([sid, sub]) => renderSubtaskRow(cid, tid, sid, sub)).join('');
+
+    const subPanel = `
+      <div class="subtasks-panel" id="sub-panel-${tid}">
+        <div class="subtasks-list" id="sublist-${tid}">
+          ${subCount === 0
+            ? `<div style="font-size:0.72rem;color:var(--muted);padding:0.3rem 0">Nessuna sotto-task ancora.</div>`
+            : subtaskRows
+          }
+        </div>
+        <div class="add-subtask-row">
+          <input type="text" id="sub-input-${tid}" placeholder="Nuova sotto-task…"
+                 onkeydown="if(event.key==='Enter') window._addSubtask('${cid}','${tid}')"/>
+          <button class="btn-sub" onclick="window._addSubtask('${cid}','${tid}')">+ Sotto-task</button>
+        </div>
+      </div>`;
+
+    return `<div class="task-wrapper${isOpen?' has-subtasks-open':''}" id="wrap-${tid}">${taskRow}${subPanel}</div>`;
+  }
+
+  function renderSubtaskRow(cid, tid, sid, sub) {
+    const isEditing = editingId?.type === 'subtask' && editingId?.sid === sid;
+    const badgeCls  = { todo:'badge-todo', inprogress:'badge-inprogress', done:'badge-done' }[sub.status] || 'badge-todo';
+    const label     = { todo:'Da fare', inprogress:'In corso', done:'Completata' }[sub.status] || 'Da fare';
+
+    return `
+      <div class="subtask-item status-${sub.status||'todo'}" id="subtask-${sid}">
+        <span style="color:var(--muted);font-size:0.7rem;flex-shrink:0">↳</span>
+        ${isEditing
+          ? `<input class="subtask-name-edit" id="sedit-${sid}" value="${escHtml(sub.name)}"
+                    onkeydown="if(event.key==='Enter') window._saveSubEdit('${cid}','${tid}','${sid}'); if(event.key==='Escape') window._cancelEdit()"/>`
+          : `<span class="subtask-name">${escHtml(sub.name)}</span>`
+        }
+        <div class="task-meta">
+          ${!isEditing ? `<span class="status-badge ${badgeCls}" style="font-size:0.58rem">${label}</span>` : ''}
+          <select class="status-select" style="font-size:0.65rem;padding:0.2rem 0.4rem"
+                  onchange="window._updateSubStatus('${cid}','${tid}','${sid}',this.value)">
+            <option value="todo"       ${sub.status==='todo'       ?'selected':''}>Da fare</option>
+            <option value="inprogress" ${sub.status==='inprogress' ?'selected':''}>In corso</option>
+            <option value="done"       ${sub.status==='done'       ?'selected':''}>Completata</option>
+          </select>
+          ${!isEditing
+            ? `<button class="icon-btn" style="font-size:0.75rem" title="Modifica" onclick="window._startSubEdit('${cid}','${tid}','${sid}')">✏️</button>`
+            : `<button class="icon-btn" style="font-size:0.75rem" title="Salva" onclick="window._saveSubEdit('${cid}','${tid}','${sid}')">💾</button>
+               <button class="icon-btn" style="font-size:0.75rem" title="Annulla" onclick="window._cancelEdit()">✕</button>`
+          }
+          <button class="icon-btn delete" style="font-size:0.75rem" title="Elimina" onclick="window._deleteSubtask('${cid}','${tid}','${sid}')">🗑</button>
+        </div>
+      </div>`;
+  }
+
+  // ── Accordion ───────────────────────────────────────────────
+  window._toggleAccordion = function(tid) {
+    const panel = document.getElementById(`sub-panel-${tid}`);
+    const btn   = document.getElementById(`expand-btn-${tid}`);
+    const wrap  = document.getElementById(`wrap-${tid}`);
+    if (!panel) return;
+
+    if (openAccordions.has(tid)) {
+      openAccordions.delete(tid);
+      panel.classList.remove('open');
+      btn?.classList.remove('open');
+      wrap?.classList.remove('has-subtasks-open');
+    } else {
+      openAccordions.add(tid);
+      panel.classList.add('open');
+      btn?.classList.add('open');
+      wrap?.classList.add('has-subtasks-open');
+      // Focus the subtask input
+      setTimeout(() => document.getElementById(`sub-input-${tid}`)?.focus(), 50);
+    }
+  };
+
+  // ── Task CRUD ───────────────────────────────────────────────
+  window._addTask = async function(cid) {
+    const inp = document.getElementById(`input-${cid}`);
+    const name = inp.value.trim();
+    if (!name) return;
+    if (!db) { toast('⚠ Database non configurato'); return; }
+    try {
+      await window._fbPush(`tasks/${cid}`, { name, status:'todo', createdAt: Date.now() });
+      inp.value = '';
+      toast('Tasca aggiunta ✓');
+    } catch(e) { toast('Errore: ' + e.message); }
+  };
+
+  window._updateStatus = async function(cid, tid, status) {
+    if (!db) return;
+    try {
+      await window._fbSet(`tasks/${cid}/${tid}/status`, status);
+      toast('Stato aggiornato ✓');
+    } catch(e) { toast('Errore: ' + e.message); }
+  };
+
+  window._deleteTask = async function(cid, tid) {
+    if (!db) return;
+    const task = allTasks[cid]?.[tid];
+    const subCount = task?.subtasks ? Object.keys(task.subtasks).length : 0;
+    const msg = subCount > 0
+      ? `Eliminare questa tasca e le sue ${subCount} sotto-task?`
+      : 'Eliminare questa tasca?';
+    if (!confirm(msg)) return;
+    try {
+      await window._fbRemove(`tasks/${cid}/${tid}`);
+      openAccordions.delete(tid);
+      toast('Tasca eliminata');
+    } catch(e) { toast('Errore: ' + e.message); }
+  };
+
+  window._startTaskEdit = function(cid, tid) {
+    editingId = { type:'task', cid, tid };
+    renderTasks(cid);
+  };
+
+  window._saveTaskEdit = async function(cid, tid) {
+    const inp = document.getElementById(`tedit-${tid}`);
+    if (!inp) return;
+    const name = inp.value.trim();
+    if (!name) return;
+    if (!db) return;
+    try {
+      await window._fbSet(`tasks/${cid}/${tid}/name`, name);
+      editingId = null;
+      toast('Tasca modificata ✓');
+    } catch(e) { toast('Errore: ' + e.message); }
+  };
+
+  // ── Subtask CRUD ────────────────────────────────────────────
+  window._addSubtask = async function(cid, tid) {
+    const inp = document.getElementById(`sub-input-${tid}`);
+    const name = inp.value.trim();
+    if (!name) return;
+    if (!db) { toast('⚠ Database non configurato'); return; }
+    try {
+      await window._fbPush(`tasks/${cid}/${tid}/subtasks`, { name, status:'todo', createdAt: Date.now() });
+      inp.value = '';
+      openAccordions.add(tid); // keep open
+      toast('Sotto-task aggiunta ✓');
+    } catch(e) { toast('Errore: ' + e.message); }
+  };
+
+  window._updateSubStatus = async function(cid, tid, sid, status) {
+    if (!db) return;
+    try {
+      await window._fbSet(`tasks/${cid}/${tid}/subtasks/${sid}/status`, status);
+      toast('Stato aggiornato ✓');
+    } catch(e) { toast('Errore: ' + e.message); }
+  };
+
+  window._deleteSubtask = async function(cid, tid, sid) {
+    if (!db) return;
+    if (!confirm('Eliminare questa sotto-task?')) return;
+    try {
+      await window._fbRemove(`tasks/${cid}/${tid}/subtasks/${sid}`);
+      toast('Sotto-task eliminata');
+    } catch(e) { toast('Errore: ' + e.message); }
+  };
+
+  window._startSubEdit = function(cid, tid, sid) {
+    editingId = { type:'subtask', cid, tid, sid };
+    openAccordions.add(tid);
+    renderTasks(cid);
+  };
+
+  window._saveSubEdit = async function(cid, tid, sid) {
+    const inp = document.getElementById(`sedit-${sid}`);
+    if (!inp) return;
+    const name = inp.value.trim();
+    if (!name) return;
+    if (!db) return;
+    try {
+      await window._fbSet(`tasks/${cid}/${tid}/subtasks/${sid}/name`, name);
+      editingId = null;
+      toast('Sotto-task modificata ✓');
+    } catch(e) { toast('Errore: ' + e.message); }
+  };
+
+  window._cancelEdit = function() {
+    const prev = editingId;
+    editingId = null;
+    if (prev) {
+      COMPANIES.forEach(c => {
+        if (allTasks[c.id]?.[prev.tid]) renderTasks(c.id);
+      });
+    }
+  };
+
+  // ── Utils ───────────────────────────────────────────────────
+  function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+  }
+
+  // ── Boot ────────────────────────────────────────────────────
+  const cfg = getConfig();
+  if (cfg && cfg.apiKey && cfg.databaseURL) {
+    initFirebase(cfg);
+  } else {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    buildUI();
+    showSetup();
+  }
+</script>
+</body>
+</html>
