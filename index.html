@@ -51,6 +51,7 @@
   body.readonly .status-select { pointer-events: none; appearance: none; -webkit-appearance: none; border-color: transparent; background: transparent; padding-left: 0; cursor: default; }
   body.readonly .expand-btn { pointer-events: auto; } /* accordion sempre cliccabile */
   body.readonly .status-select { display: none !important; }
+  body.readonly .expand-btn.no-sub { visibility: hidden; pointer-events: none; }
 
   /* LOCK BUTTON */
   #lock-btn {
@@ -780,7 +781,12 @@
   // ── Render ──────────────────────────────────────────────────
   function renderTasks(cid) {
     const tasks = allTasks[cid] || {};
-    const arr = Object.entries(tasks).sort((a,b) => (a[1].createdAt||0) - (b[1].createdAt||0));
+    const statusOrder = { inprogress:0, todo:1, incomplete:2, missingfiles:3, done:4 };
+    const arr = Object.entries(tasks).sort((a,b) => {
+      const so = (statusOrder[a[1].status]??1) - (statusOrder[b[1].status]??1);
+      if (so !== 0) return so;
+      return (a[1].createdAt||0) - (b[1].createdAt||0);
+    });
 
     const { totalTasks, doneTasks, totalSubs, doneSubs } = calcStats(cid);
     const totalItems = totalTasks + totalSubs;
@@ -855,7 +861,7 @@
     const expandBtnCls = `expand-btn${incompleteSubs>0&&subCount>0?' has-incomplete':''}${allDone?' all-done':''}`;
 
     const expandBtn = `
-      <button class="${expandBtnCls}" id="expand-btn-${tid}"
+      <button class="${expandBtnCls} ${subCount===0?'no-sub':''}" id="expand-btn-${tid}"
               onclick="window._toggleAccordion('${tid}')"
               title="Mostra/nascondi sub-task">
         <span class="arrow">▶</span>
