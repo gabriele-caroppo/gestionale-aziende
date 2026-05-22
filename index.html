@@ -595,13 +595,13 @@
   window.saveConfig = saveConfig;
 
   function showSetup() {
-    const cfg = getConfig() || {};
-    document.getElementById('cfg-apiKey').value     = cfg.apiKey     || '';
-    document.getElementById('cfg-authDomain').value = cfg.authDomain || '';
-    document.getElementById('cfg-dbUrl').value      = cfg.databaseURL|| '';
-    document.getElementById('cfg-projectId').value  = cfg.projectId  || '';
-    document.getElementById('setup-error').style.display = 'none';
-    document.getElementById('setup-overlay').style.display = 'flex';
+   const cfg = {
+    apiKey: "AIzaSyAfy8G_pHz8DftywbYi4YX1k71EyrmOgxQ",
+    authDomain: "gestionale-gabriele.firebaseapp.com",
+    databaseURL: "https://gestionale-gabriele-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "gestionale-gabriele",
+  };
+  initFirebase(cfg);
   }
   window.showSetup = showSetup;
 
