@@ -510,7 +510,7 @@
 <script type="module">
   const COMPANIES = [
     { id: 'focacciamo', name: 'Focacciamo' },
-    { id: 'lamancha',   name: 'La Mancha' },
+    { id: 'lamancha',   name: 'Mancha' },
     { id: 'futuri',     name: 'Futuri Campioni' },
   ];
 
@@ -580,7 +580,7 @@
       `<div class="company-panel" id="panel-${c.id}">
          <div class="stats-bar" id="stats-${c.id}"></div>
          <div class="add-section">
-           <input type="text" id="input-${c.id}" placeholder="Nuova tasca principale…"
+           <input type="text" id="input-${c.id}" placeholder="Nuova task principale…"
                   onkeydown="if(event.key==='Enter') window._addTask('${c.id}')"/>
            <button class="btn btn-accent" onclick="window._addTask('${c.id}')">+ Aggiungi</button>
          </div>
@@ -634,7 +634,7 @@
     if (!listEl) return;
 
     if (arr.length === 0) {
-      listEl.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div>Nessuna tasca ancora.<br>Aggiungine una qui sopra.</div>`;
+      listEl.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div>Nessuna task ancora.<br>Aggiungine una qui sopra.</div>`;
       return;
     }
 
@@ -706,7 +706,7 @@
             : `<button class="icon-btn" title="Salva" onclick="window._saveTaskEdit('${cid}','${tid}')">💾</button>
                <button class="icon-btn" title="Annulla" onclick="window._cancelEdit()">✕</button>`
           }
-          <button class="icon-btn delete" title="Elimina tasca e sotto-task" onclick="window._deleteTask('${cid}','${tid}')">🗑</button>
+          <button class="icon-btn delete" title="Elimina task e sotto-task" onclick="window._deleteTask('${cid}','${tid}')">🗑</button>
           ${date ? `<span class="task-date">${date}</span>` : ''}
         </div>
       </div>`;
@@ -794,7 +794,7 @@
     try {
       await window._fbPush(`tasks/${cid}`, { name, status:'todo', createdAt: Date.now() });
       inp.value = '';
-      toast('Tasca aggiunta ✓');
+      toast('Task aggiunta ✓');
     } catch(e) { toast('Errore: ' + e.message); }
   };
 
@@ -811,13 +811,13 @@
     const task = allTasks[cid]?.[tid];
     const subCount = task?.subtasks ? Object.keys(task.subtasks).length : 0;
     const msg = subCount > 0
-      ? `Eliminare questa tasca e le sue ${subCount} sotto-task?`
-      : 'Eliminare questa tasca?';
+      ? `Eliminare questa task e le sue ${subCount} sotto-task?`
+      : 'Eliminare questa task?';
     if (!confirm(msg)) return;
     try {
       await window._fbRemove(`tasks/${cid}/${tid}`);
       openAccordions.delete(tid);
-      toast('Tasca eliminata');
+      toast('Task eliminata');
     } catch(e) { toast('Errore: ' + e.message); }
   };
 
@@ -835,7 +835,7 @@
     try {
       await window._fbSet(`tasks/${cid}/${tid}/name`, name);
       editingId = null;
-      toast('Tasca modificata ✓');
+      toast('Task modificata ✓');
     } catch(e) { toast('Errore: ' + e.message); }
   };
 
