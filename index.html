@@ -50,6 +50,7 @@
   body.readonly .edit-only { display: none !important; }
   body.readonly .status-select { pointer-events: none; appearance: none; -webkit-appearance: none; border-color: transparent; background: transparent; padding-left: 0; cursor: default; }
   body.readonly .expand-btn { pointer-events: auto; } /* accordion sempre cliccabile */
+  body.readonly .status-select { display: none !important; }
 
   /* LOCK BUTTON */
   #lock-btn {
@@ -870,7 +871,6 @@
           : `<span class="task-name">${escHtml(task.name)}</span>`
         }
         <div class="task-meta">
-          ${isBlocked ? `<span class="blocked-badge">⚠ bloccata</span>` : ''}
           ${!isEditingTask ? `<span class="status-badge ${badgeCls}">${statusLabel}</span>` : ''}
           <select class="status-select" onchange="window._updateStatus('${cid}','${tid}',this.value)">
             <option value="todo"          ${task.status==='todo'          ?'selected':''}>Da fare</option>
