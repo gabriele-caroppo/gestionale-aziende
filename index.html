@@ -53,6 +53,26 @@
   body.readonly .status-select { display: none !important; }
   body.readonly .expand-btn.no-sub { visibility: hidden; pointer-events: none; }
 
+  /* BACKOFFICE BUTTON */
+  #backoffice-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'DM Sans', 'Helvetica Neue', Helvetica, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: var(--company-color);
+    background: var(--company-dim);
+    border: 1px solid var(--company-color);
+    border-radius: 20px;
+    padding: 0.4rem 0.9rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  #backoffice-btn:hover { opacity: 0.8; transform: translateY(-1px); }
+
   /* LOCK BUTTON */
   #lock-btn {
     width: 36px; height: 36px;
@@ -639,6 +659,9 @@
     </div>
     <div class="header-right">
       <div id="conn-status">● Connessione…</div>
+      <a id="backoffice-btn" href="#" target="_blank" title="Apri Backoffice" style="display:none">
+        🖥 Backoffice
+      </a>
       <button id="lock-btn" title="Modalità modifica" onclick="window._toggleEdit()">🔒</button>
     </div>
   </header>
@@ -649,9 +672,9 @@
 
 <script type="module">
   const COMPANIES = [
-    { id: 'focacciamo', name: 'Focacciamo', color: '#c0392b', dim: 'rgba(192,57,43,0.12)' },
-    { id: 'lamancha',   name: 'Mancha',      color: '#ff7b00', dim: 'rgba(255,123,0,0.12)' },
-    { id: 'futuri',     name: 'Futuri Campioni', color: '#39d353', dim: 'rgba(57,211,83,0.12)' },
+    { id: 'focacciamo', name: 'Focacciamo', color: '#c0392b', dim: 'rgba(192,57,43,0.12)', backoffice: 'https://backoffice.pienissimo.pro/user/login' },
+    { id: 'lamancha',   name: 'Mancha',      color: '#ff7b00', dim: 'rgba(255,123,0,0.12)', backoffice: null },
+    { id: 'futuri',     name: 'Futuri Campioni', color: '#39d353', dim: 'rgba(57,211,83,0.12)', backoffice: 'https://manager.futuricampioni.com/' },
   ];
 
   let db = null;
@@ -676,6 +699,13 @@
     document.documentElement.style.setProperty('--company-color', c.color);
     document.documentElement.style.setProperty('--company-dim', c.dim);
     document.getElementById('company-title').textContent = c.name;
+    const btn = document.getElementById('backoffice-btn');
+    if (c.backoffice) {
+      btn.href = c.backoffice;
+      btn.style.display = 'flex';
+    } else {
+      btn.style.display = 'none';
+    }
   }
 
   // ── Firebase ────────────────────────────────────────────────
