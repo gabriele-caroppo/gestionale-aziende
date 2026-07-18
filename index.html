@@ -94,9 +94,57 @@ header{padding:28px 32px 22px;border-bottom:1px solid var(--border);margin-botto
 #bottom-nav{display:none}.bn-inner{display:flex}.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border:0;background:transparent;color:var(--text3);font-family:var(--font-mono);font-size:8px;text-transform:uppercase}.bn-item.active{color:var(--company-color)}.bn-item svg{width:19px;height:19px}
 #toast{position:fixed;right:20px;bottom:20px;z-index:999;padding:11px 14px;border:1px solid var(--border2);border-radius:10px;background:var(--surface2);box-shadow:var(--shadow-2);font-size:12px;opacity:0;transform:translateY(8px);transition:.2s}.show#toast,#toast.show{opacity:1;transform:none}.empty,.empty-state{text-align:center;padding:30px;border:1px dashed var(--border);border-radius:var(--radius-md);color:var(--text3);font-size:12px}
 #loading{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:var(--bg)}.spinner,.loader{width:30px;height:30px;border:2px solid var(--border);border-top-color:var(--company-color);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}#loading p{font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)}
-#edit-banner{display:none;padding:7px;text-align:center;border-bottom:1px solid var(--company-color);background:var(--company-dim);color:var(--company-color);font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.1em}body:not(.readonly) #edit-banner{display:block}body.readonly .edit-only,body.readonly .status-select,body.readonly .sel{display:none!important}
+body.readonly .edit-only,body.readonly .status-select,body.readonly .sel{display:none!important}
 
 @media(max-width:760px){#sidebar{display:none}#bottom-nav{display:block;position:fixed;left:0;right:0;bottom:0;z-index:80;background:rgba(17,16,22,.94);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}#main{padding-bottom:74px}.page,.main-panel,main{padding:24px 16px 96px}.ph h1,.header-left h1{font-size:28px}.stats-grid,.stats-bar{grid-template-columns:repeat(2,1fr)}.split-grid{grid-template-columns:1fr}.fin-grid{grid-template-columns:1fr}.task-row,.task-item{align-items:flex-start}.task-meta{max-width:42%}.badge-project{display:none}.csv-import{align-items:flex-start;flex-direction:column}.csv-import__button{width:100%;justify-content:center}.subtask-panel.open,.subtasks-panel.open{padding-left:14px}.content-type-row{align-items:flex-start;flex-direction:column}.split-btns{grid-template-columns:1fr}.modal{padding-inline:16px}}
+
+
+/* ── DYRECTIO premium polish v2 ── */
+*::-webkit-scrollbar{width:8px;height:8px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:var(--surface4);border-radius:999px}
+*::-webkit-scrollbar-thumb:hover{background:var(--border2)}
+html{scrollbar-color:var(--surface4) transparent;scrollbar-width:thin}
+
+button:focus-visible,.tab:focus-visible,.tab-btn:focus-visible,.main-tab:focus-visible,.sb-item:focus-visible,.bn-item:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--company-color);outline-offset:2px;border-radius:8px}
+
+.page,.main-panel,main{padding:38px 46px 64px}
+@media(max-width:760px){.page,.main-panel,main{padding:24px 16px 100px}}
+
+.ph h1,.header-left h1{font-size:clamp(30px,3.4vw,44px);letter-spacing:-.05em}
+.ph p{font-size:14.5px;color:var(--text2);margin-top:9px;line-height:1.5}
+
+.stat-card,.stat{padding:22px}
+.card{padding:24px}
+.stats-grid,.stats-bar{gap:14px;margin-bottom:28px}
+.stat-num,.fin-amount,.target-num,.tracker-sum-num{font-size:32px;font-variant-numeric:tabular-nums}
+
+.stat-card,.stat,.card,.fin-card,.split-card,.profile-block,.target-card,.tracker-sum-card{transition:transform .22s var(--ease),box-shadow .22s var(--ease),border-color .22s var(--ease)}
+.stat-card:hover,.stat:hover,.split-card:hover,.profile-block:hover{transform:translateY(-2px);border-color:var(--border2);box-shadow:0 4px 18px rgba(0,0,0,.26),0 22px 48px rgba(0,0,0,.22)}
+
+.task-row,.task-item{transition:background .18s var(--ease),border-color .18s var(--ease),transform .18s var(--ease),box-shadow .18s var(--ease)}
+.task-row:hover,.task-item:hover{transform:translateX(2px);box-shadow:0 2px 12px rgba(0,0,0,.2)}
+
+.btn-primary,.btn-add,.btn-sub,.btn-ghost,#backoffice-btn{transition:transform .14s var(--ease),filter .18s var(--ease),background .18s var(--ease),border-color .18s var(--ease),color .18s var(--ease)}
+.btn-primary:active,.btn-add:active,.btn-sub:active,.btn-ghost:active{transform:scale(.96)}
+.ibtn:active,.icon-btn:active{transform:scale(.9)}
+
+.sb-item{padding:11px 12px;transition:background .18s var(--ease),color .18s var(--ease),box-shadow .18s var(--ease)}
+.sb-item.active{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--company-color) 26%,transparent),0 0 0 3px color-mix(in srgb,var(--company-color) 8%,transparent)}
+
+.bn-item{transition:color .18s var(--ease)}
+.bn-item.active{position:relative}
+.bn-item.active::before{content:'';position:absolute;inset:2px 6px;border-radius:12px;background:var(--company-dim);z-index:-1}
+
+.modal-overlay{backdrop-filter:blur(14px);background:rgba(3,2,6,.78)}
+.modal{box-shadow:0 -4px 0 rgba(255,255,255,.02) inset,var(--shadow-2)}
+
+.tabs,.main-tabs,.tracker-tabs{margin-bottom:26px}
+.tab,.tab-btn,.main-tab,.tracker-tab{padding:12px 15px}
+
+.task-name{font-size:14.5px}
+
+@media(min-width:761px){.stat-card,.stat{min-height:118px}}
 
 </style>
 </head>
@@ -110,19 +158,17 @@ header{padding:28px 32px 22px;border-bottom:1px solid var(--border);margin-botto
 <div id="toast"></div>
 
 <div id="app" style="display:none">
-  <div id="edit-banner">✏️ Modalità modifica attiva</div>
 
   <header>
     <div class="header-left">
       <h1>Gestionale <span id="company-title">Società</span></h1>
-      <div class="header-sub"><span class="status-dot"></span>Dashboard operativa · 3 società</div>
+      <div class="header-sub"><span class="status-dot"></span>Dashboard operativa · 3 società · vista Antonio</div>
     </div>
     <div class="header-right">
       <div id="conn-status">● Connessione…</div>
       <a id="backoffice-btn" href="#" target="_blank" title="Apri Backoffice" style="display:none">
         🖥 Backoffice
       </a>
-      <button id="lock-btn" title="Modalità modifica" onclick="window._toggleEdit()">🔒</button>
     </div>
   </header>
 
@@ -142,15 +188,6 @@ header{padding:28px 32px 22px;border-bottom:1px solid var(--border);margin-botto
   let allTasks = {};
   let editingId = null;
   let openAccordions = new Set();
-  let isEditMode = false;
-
-  // ── Edit mode toggle ────────────────────────────────────────
-  window._toggleEdit = function() {
-    isEditMode = !isEditMode;
-    document.body.classList.toggle('readonly', !isEditMode);
-    document.getElementById('lock-btn').textContent = isEditMode ? '🔓' : '🔒';
-    toast(isEditMode ? '✏️ Modifica abilitata' : '🔒 Sola lettura');
-  };
 
   // ── Company color switch ────────────────────────────────────
   function applyCompanyColor(cid) {
@@ -223,7 +260,7 @@ header{padding:28px 32px 22px;border-bottom:1px solid var(--border);margin-botto
     main.innerHTML = COMPANIES.map(c =>
       `<div class="company-panel" id="panel-${c.id}">
          <div class="stats-bar" id="stats-${c.id}"></div>
-         <div class="add-section edit-only">
+         <div class="add-section">
            <input type="text" id="input-${c.id}" placeholder="Nuova task…"
                   onkeydown="if(event.key==='Enter') window._addTask('${c.id}')"/>
            <button class="btn-add" onclick="window._addTask('${c.id}')">+ Aggiungi</button>
