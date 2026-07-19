@@ -880,7 +880,8 @@ header{
         </div>
       </div>`;
 
-    return `<div class="task-wrapper${isOpen?' has-subtasks-open':''}" id="wrap-${tid}" data-cid="${cid}" data-tid="${tid}">${taskRow}${subPanel}</div>`;
+    const swipeRow = `<div class="swipe-row"><div class="swipe-bg swipe-bg-left"><span>✓ Completa</span></div>${taskRow}</div>`;
+    return `<div class="task-wrapper${isOpen?' has-subtasks-open':''}" id="wrap-${tid}" data-cid="${cid}" data-tid="${tid}">${swipeRow}${subPanel}</div>`;
   }
 
   function renderSubtaskRow(cid, tid, sid, sub) {
@@ -1061,31 +1062,15 @@ header{
     row.style.transform = 'translateX(0)';
   }
 
-  function ensureWrapped(wrapper){
-    let row = wrapper.querySelector(':scope > .swipe-row > :last-child');
-    if(row) return row;
-    row = wrapper.firstElementChild;
-    if(!row) return null;
-    const container = document.createElement('div');
-    container.className = 'swipe-row';
-    row.parentNode.insertBefore(container, row);
-    const bgLeft = document.createElement('div');
-    bgLeft.className = 'swipe-bg swipe-bg-left';
-    bgLeft.innerHTML = '<span>✓ Completa</span>';
-    container.appendChild(bgLeft);
-    container.appendChild(row);
-    return row;
-  }
-
   function onPointerDown(e){
     if(e.pointerType === 'mouse' && e.button !== 0) return;
     if(e.target.closest('select,button,input,textarea,a,.qa-pill')) return;
     const wrapper = e.target.closest('.task-wrapper');
     if(!wrapper) return;
     if(!wrapper.dataset.cid || !wrapper.dataset.tid) return;
-    if(active) resetRow(active.row); // pulizia difensiva di un'interazione precedente rimasta aperta
-    const row = wrapper.firstElementChild;
+    const row = wrapper.querySelector(':scope > .swipe-row > :last-child');
     if(!row) return;
+    if(active) resetRow(active.row); // pulizia difensiva di un'interazione precedente rimasta aperta
     active = { wrapper, row, cid:wrapper.dataset.cid, tid:wrapper.dataset.tid, startX:e.clientX, startY:e.clientY, curX:0, dragging:false, pointerId:e.pointerId };
   }
 
@@ -1096,9 +1081,6 @@ header{
       if(Math.abs(dx) < DEADZONE && Math.abs(dy) < DEADZONE) return;
       if(Math.abs(dy) >= Math.abs(dx)){ active = null; return; } // scroll verticale: non intercettare mai
       if(dx < 0){ active = null; return; } // swipe a sinistra: ignorato, nessuna azione
-      const wrapped = ensureWrapped(active.wrapper);
-      if(!wrapped){ active = null; return; }
-      active.row = wrapped;
       active.dragging = true;
       active.row.style.transition = 'none';
     }
