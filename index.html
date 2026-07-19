@@ -841,14 +841,16 @@ header{
           : `<span class="task-name">${escHtml(task.name)}</span>`
         }
         <div class="task-meta">
-          ${!isEditingTask ? `<span class="status-badge ${badgeCls}">${statusLabel}</span>` : ''}
-          <select class="status-select" onchange="window._updateStatus('${cid}','${tid}',this.value)">
-            <option value="todo"          ${task.status==='todo'          ?'selected':''}>Da fare</option>
-            <option value="inprogress"    ${task.status==='inprogress'    ?'selected':''}>In corso</option>
-            <option value="done"          ${task.status==='done'          ?'selected':''}>Completata</option>
-            <option value="incomplete"    ${task.status==='incomplete'    ?'selected':''}>Incompleto</option>
-            <option value="missingfiles"  ${task.status==='missingfiles'  ?'selected':''}>File mancanti</option>
-          </select>
+          ${!isEditingTask
+            ? `<span class="status-badge ${badgeCls}">${statusLabel}</span>`
+            : `<select class="status-select" onchange="window._updateStatus('${cid}','${tid}',this.value)">
+                 <option value="todo"          ${task.status==='todo'          ?'selected':''}>Da fare</option>
+                 <option value="inprogress"    ${task.status==='inprogress'    ?'selected':''}>In corso</option>
+                 <option value="done"          ${task.status==='done'          ?'selected':''}>Completata</option>
+                 <option value="incomplete"    ${task.status==='incomplete'    ?'selected':''}>Incompleto</option>
+                 <option value="missingfiles"  ${task.status==='missingfiles'  ?'selected':''}>File mancanti</option>
+               </select>`
+          }
           <span class="edit-only" style="display:contents">
             ${!isEditingTask
               ? `<button class="icon-btn" title="Modifica" onclick="window._startTaskEdit('${cid}','${tid}')">✏️</button>`
@@ -878,7 +880,7 @@ header{
         </div>
       </div>`;
 
-    return `<div class="task-wrapper${isOpen?' has-subtasks-open':''}" id="wrap-${tid}">${taskRow}${subPanel}</div>`;
+    return `<div class="task-wrapper${isOpen?' has-subtasks-open':''}" id="wrap-${tid}" data-cid="${cid}" data-tid="${tid}">${taskRow}${subPanel}</div>`;
   }
 
   function renderSubtaskRow(cid, tid, sid, sub) {
@@ -1045,9 +1047,8 @@ header{
   initFirebase(cfg);
 
 // ── SWIPE orizzontale su task-wrapper: solo swipe verso destra = completa ──
-// (l'eliminazione resta solo dal bottone 🗑 in edit-mode, come prima).
-// Riusa il select di stato reale già esistente, quindi rispetta automaticamente
-// edit-mode/readonly: se il select è nascosto, lo swipe non fa nulla.
+// Chiama window._updateStatus(cid,tid,'done') direttamente (cid/tid presi da
+// data-cid/data-tid sul wrapper), niente select intermedio da individuare/manipolare.
 (function(){
   const DEADZONE = 14; // px minimi prima di considerare un vero swipe (non un tap/scroll)
   const THRESHOLD = 88; // px per attivare l'azione
@@ -1076,19 +1077,16 @@ header{
     return row;
   }
 
-  function isVisible(el){
-    return !!el && el.offsetParent !== null;
-  }
-
   function onPointerDown(e){
     if(e.pointerType === 'mouse' && e.button !== 0) return;
     if(e.target.closest('select,button,input,textarea,a,.qa-pill')) return;
     const wrapper = e.target.closest('.task-wrapper');
     if(!wrapper) return;
+    if(!wrapper.dataset.cid || !wrapper.dataset.tid) return;
     if(active) resetRow(active.row); // pulizia difensiva di un'interazione precedente rimasta aperta
     const row = wrapper.firstElementChild;
     if(!row) return;
-    active = { wrapper, row, startX:e.clientX, startY:e.clientY, curX:0, dragging:false, pointerId:e.pointerId };
+    active = { wrapper, row, cid:wrapper.dataset.cid, tid:wrapper.dataset.tid, startX:e.clientX, startY:e.clientY, curX:0, dragging:false, pointerId:e.pointerId };
   }
 
   function onPointerMove(e){
@@ -1111,12 +1109,11 @@ header{
 
   function onPointerUp(e){
     if(!active || active.pointerId !== e.pointerId) return;
-    const { row, wrapper, curX, dragging } = active;
+    const { row, curX, dragging, cid, tid } = active;
     if(dragging){
       resetRow(row);
-      if(curX > THRESHOLD){
-        const sel = wrapper.querySelector('.sel, .status-select');
-        if(isVisible(sel)){ sel.value = 'done'; sel.dispatchEvent(new Event('change',{bubbles:true})); }
+      if(curX > THRESHOLD && typeof window._updateStatus === 'function'){
+        window._updateStatus(cid, tid, 'done');
       }
     }
     active = null;
